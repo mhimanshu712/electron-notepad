@@ -1,44 +1,14 @@
 // Modules
-const {app, BrowserWindow, Tray, Menu} = require('electron')
+//This module can only be reuired once the app is ready
+const electron = require('electron')
+const {app, BrowserWindow} = electron
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-//Do the same for tray
-let mainWindow, tray
-
-let trayMenu = Menu.buildFromTemplate([
-  { label: 'Item 1' },
-  { role: 'quit' }
-])
-
-function createTray() {
-
-  //Only first line is required to create a tray entry
-  tray = new Tray('trayTemplate@2x.png')
-
-  //Tooltip on tray
-  tray.setToolTip('Tray details')
-
-  //On click toogle visibility of app
-  tray.on('click', e => {
-
-    //Clicking with shiftkey down closes the app
-    if (e.shiftKey) {
-      app.quit()
-    } else {
-      mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show()
-    }
-  })
-
-  //Set context menu of tray icon
-  //When context is woriking the click options above are ignored
-  tray.setContextMenu(trayMenu)
-}
+let mainWindow
 
 // Create a new BrowserWindow when `app` is ready
 function createWindow () {
-
-  createTray()
 
   mainWindow = new BrowserWindow({
     width: 1000, height: 800,
@@ -54,6 +24,15 @@ function createWindow () {
   // Listen for window being closed
   mainWindow.on('closed',  () => {
     mainWindow = null
+  })
+
+  electron.powerMonitor.on('resume', e => {
+    if(!mainWindow) createWindow()
+  })
+
+  //Listen for suspend
+  electron.powerMonitor.on('suspend', e => {
+    console.log('Saving some data')
   })
 }
 
